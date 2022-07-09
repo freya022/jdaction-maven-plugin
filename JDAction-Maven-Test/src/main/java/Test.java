@@ -19,4 +19,16 @@ public class Test {
 		jda.retrieveUserById(0);
 		jda.retrieveUserById(0);
 	}
+
+	public class Inner {
+		public void test() throws Exception {
+			JDA jda = JDABuilder.createLight("")
+					.build()
+					.awaitReady();
+
+			jda.retrieveUserById(0);
+			jda.retrieveUserById(0);
+			jda.retrieveUserById(0);
+		}
+	}
 }

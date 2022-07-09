@@ -6,9 +6,12 @@ import org.objectweb.asm.*;
 // Straight up from https://github.com/JDA-Applications/jdaction/blob/master/src/main/java/com/sedmelluq/discord/jdaction/NoActionClassVisitor.java
 //  With a few modifications to what the logger shows
 public class NoActionClassVisitor extends ClassVisitor {
+	private static final boolean isIJ = System.getProperties().getProperty("idea.version") != null;
+
 	private final Log logger;
 	private final boolean ignoreFailures;
-	private String className;
+	private String fqcnClassName;
+	private String classExtension = "java";
 	private int issueCount;
 
 	public NoActionClassVisitor(Log log, boolean ignoreFailures) {
@@ -18,8 +21,17 @@ public class NoActionClassVisitor extends ClassVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+		if (descriptor.equals("Lkotlin/Metadata;")) {
+			this.classExtension = "kt";
+		}
+
+		return super.visitAnnotation(descriptor, visible);
+	}
+
+	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		this.className = name;
+		this.fqcnClassName = name;
 	}
 
 	@Override
@@ -29,6 +41,20 @@ public class NoActionClassVisitor extends ClassVisitor {
 
 	public int getIssueCount() {
 		return issueCount;
+	}
+
+	public String getSimpleSourceFile() {
+		return getSimpleClassName() + "." + classExtension;
+	}
+
+	private String getSimpleClassName() {
+		final String[] split = fqcnClassName.split("/");
+		final String lastComponent = split[split.length - 1];
+		if (lastComponent.indexOf('$') > -1) {
+			return lastComponent.substring(0, lastComponent.indexOf('$'));
+		}
+
+		return lastComponent;
 	}
 
 	private class UnusedReturnMethodVisitor extends MethodVisitor {
@@ -47,11 +73,11 @@ public class NoActionClassVisitor extends ClassVisitor {
 		@Override
 		public void visitInsn(int opcode) {
 			if (checkForImmediatePop && (opcode == Opcodes.POP || opcode == Opcodes.POP2)) {
-				final boolean isIJ = System.getProperties().getProperty("idea.version") != null;
+				final String simpleSourceFile = getSimpleSourceFile();
 
-				final String sourceHyperlink = isIJ ? String.format(" (%s.java:%d)", className, lineNumber) : "";
+				final String sourceHyperlink = isIJ ? String.format(" (%s:%d)", simpleSourceFile, lineNumber) : "";
 				final String realErrorMessage = String.format("Return value is unused. This action is not performed.%s", sourceHyperlink);
-				String message = String.format("%s.java:%d %s", className, lineNumber, realErrorMessage);
+				String message = String.format("%s:%d %s", simpleSourceFile, lineNumber, realErrorMessage);
 
 				if (isIJ) { //Small hack to add a hyperlink that IJ recognizes, to facilitate navigation
 					message = message + " " + realErrorMessage;

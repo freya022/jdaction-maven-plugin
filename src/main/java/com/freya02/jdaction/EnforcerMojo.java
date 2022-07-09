@@ -75,7 +75,7 @@ public class EnforcerMojo extends AbstractMojo {
 		reader.accept(visitor, ClassReader.SKIP_FRAMES);
 
 		if (visitor.getIssueCount() > 0) {
-			getLog().error(path.getFileName().toString().replace(".class", ".java") + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
+			getLog().error(visitor.getSimpleSourceFile() + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
 		}
 
 		return visitor.getIssueCount();
