@@ -22,7 +22,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 
 	@Override
 	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-		if (descriptor.equals("Lkotlin/Metadata;")) {
+		if (descriptor.equals("Lkotlin/Metadata;")) { //TODO improve support for file facades => remove "Kt" from file name
 			this.classExtension = "kt";
 		}
 

@@ -16,8 +16,6 @@ public class Test {
 				.awaitReady();
 
 		jda.retrieveUserById(0);
-		jda.retrieveUserById(0);
-		jda.retrieveUserById(0);
 	}
 
 	public class Inner {
@@ -26,8 +24,6 @@ public class Test {
 					.build()
 					.awaitReady();
 
-			jda.retrieveUserById(0);
-			jda.retrieveUserById(0);
 			jda.retrieveUserById(0);
 		}
 	}

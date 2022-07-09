@@ -26,7 +26,7 @@ public class EnforcerMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
 	MavenProject project;
 
-	@Override
+	@Override //TODO make sure this plugin is executed AFTER compilation, perhaps look at executed goals ?
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
 			if (ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.startsWith("-agentlib:jdwp"))) {
