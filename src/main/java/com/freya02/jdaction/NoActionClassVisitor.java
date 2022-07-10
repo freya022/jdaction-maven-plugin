@@ -1,26 +1,24 @@
 package com.freya02.jdaction;
 
-import org.apache.maven.plugin.logging.Log;
 import org.objectweb.asm.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 // Straight up from https://github.com/JDA-Applications/jdaction/blob/master/src/main/java/com/sedmelluq/discord/jdaction/NoActionClassVisitor.java
 //  With a few modifications to what the logger shows and how issues are reported
 public class NoActionClassVisitor extends ClassVisitor {
 	public static final boolean isIJ = System.getProperties().getProperty("idea.version") != null;
 
-	private final Log logger;
-	private final boolean ignoreFailures;
 	private String simpleSourceFile;
 
-	private final Map<Integer, String> issues = new HashMap<>();
+	private final Map<Integer, NoActionIssue> issues = new HashMap<>();
+	private final HashSet<Integer> issueLines = new HashSet<>();
 
-	NoActionClassVisitor(Log log, boolean ignoreFailures) {
+	NoActionClassVisitor() {
 		super(Opcodes.ASM9);
-		this.logger = log;
-		this.ignoreFailures = ignoreFailures;
 	}
 
 	@Override
@@ -36,7 +34,11 @@ public class NoActionClassVisitor extends ClassVisitor {
 	}
 
 	/** For testing purpose, this might be inaccurate as one line could have multiple instructions in java */
-	Map<Integer, String> getIssues() {
+	Set<Integer> getIssueLines() {
+		return issueLines;
+	}
+
+	public Map<Integer, NoActionIssue> getIssues() {
 		return issues;
 	}
 
@@ -66,21 +68,8 @@ public class NoActionClassVisitor extends ClassVisitor {
 			if (checkForImmediatePop && (opcode == Opcodes.POP || opcode == Opcodes.POP2)) {
 				final String simpleSourceFile = getSimpleSourceFile();
 
-				final String sourceHyperlink = isIJ ? String.format(" (%s:%d)", simpleSourceFile, lineNumber) : "";
-				final String realErrorMessage = String.format("Return value is unused. This action is not performed.%s", sourceHyperlink);
-				String message = String.format("%s:%d %s", simpleSourceFile, lineNumber, realErrorMessage);
-
-				if (isIJ) { //Small hack to add a hyperlink that IJ recognizes, to facilitate navigation
-					message = message + " " + realErrorMessage;
-				}
-
-				if (ignoreFailures) {
-					logger.warn(message);
-				} else {
-					logger.error(message);
-				}
-
-				issues.put(lineNumber, simpleSourceFile);
+				issueLines.add(lineNumber);
+				issues.put(lineNumber, new NoActionIssue(simpleSourceFile, lineNumber));
 			}
 
 			checkForImmediatePop = false;
@@ -144,6 +133,59 @@ public class NoActionClassVisitor extends ClassVisitor {
 		@Override
 		public void visitMultiANewArrayInsn(String desc, int dims) {
 			checkForImmediatePop = false;
+		}
+	}
+
+	public static class NoActionIssue {
+		private final String simpleSourceFile;
+		private final int lineNumber;
+
+		public NoActionIssue(String simpleSourceFile, int lineNumber) {
+			this.simpleSourceFile = simpleSourceFile;
+			this.lineNumber = lineNumber;
+		}
+
+		public String getSimpleSourceFile() {
+			return simpleSourceFile;
+		}
+
+		public int getLineNumber() {
+			return lineNumber;
+		}
+
+		public String getAsMessage() {
+			final String sourceHyperlink = isIJ ? String.format(" (%s:%d)", simpleSourceFile, lineNumber) : "";
+			final String realErrorMessage = String.format("Return value is unused. This action is not performed.%s", sourceHyperlink);
+			String message = String.format("%s:%d %s", simpleSourceFile, lineNumber, realErrorMessage);
+
+			if (isIJ) { //Small hack to add a hyperlink that IJ recognizes, to facilitate navigation
+				message = message + " " + realErrorMessage;
+			}
+
+			return message;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
+
+			NoActionIssue that = (NoActionIssue) o;
+
+			if (lineNumber != that.lineNumber) return false;
+			return simpleSourceFile.equals(that.simpleSourceFile);
+		}
+
+		@Override
+		public int hashCode() {
+			int result = simpleSourceFile.hashCode();
+			result = 31 * result + lineNumber;
+			return result;
+		}
+
+		@Override
+		public String toString() {
+			return String.format("%s:%d", simpleSourceFile, lineNumber);
 		}
 	}
 }

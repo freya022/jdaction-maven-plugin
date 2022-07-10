@@ -2,8 +2,6 @@ package com.freya02.jdaction;
 
 import com.freya02.jdaction.test.ExpectedIssue;
 import com.freya02.jdaction.test.GenerateTests;
-import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -11,10 +9,10 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GeneratedTest {
-	private static final Log log = new SystemStreamLog();
 	private static Map<Integer, ExpectedIssue> expectedIssuesMap;
 
 	@BeforeAll
@@ -24,14 +22,14 @@ public class GeneratedTest {
 
 	@Test
 	public void test() throws Exception {
-		final NoActionClassVisitor visitor = JDAction.inspectPath(log, Paths.get("target", "test-classes", "NoActionTest.class"), false);
+		final NoActionClassVisitor visitor = JDAction.inspectPath(Paths.get("target", "test-classes", "NoActionTest.class"));
 
-		final Map<Integer, String> issues = visitor.getIssues();
+		final Set<Integer> issueLines = visitor.getIssueLines();
 
 		List<ExpectedIssue> missedIssues = expectedIssuesMap
 				.entrySet()
 				.stream()
-				.filter(entry -> !issues.containsKey(entry.getKey()))
+				.filter(entry -> !issueLines.contains(entry.getKey()))
 				.map(Map.Entry::getValue)
 				.collect(Collectors.toList());
 

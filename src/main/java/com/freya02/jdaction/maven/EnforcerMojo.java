@@ -26,6 +26,9 @@ public class EnforcerMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
 	MavenProject project;
 
+	@Parameter(defaultValue = "false")
+	boolean ignoreFailures;
+
 	private final HashSet<String> sourceWithIssues = new HashSet<>();
 
 	@Override
@@ -41,13 +44,13 @@ public class EnforcerMojo extends AbstractMojo {
 			classpath.addAll(project.getTestClasspathElements());
 			classpath.addAll(project.getRuntimeClasspathElements());
 
-			int issues = 0;
+			int totalIssues = 0;
 			for (String target : classpath) {
 				final Path rootPath = Paths.get(target);
 				if (Files.notExists(rootPath)) continue;
 
 				try (Stream<Path> stream = Files.walk(rootPath)) {
-					issues += stream
+					totalIssues += stream
 							.filter(p -> p.getFileName().toString().endsWith(".class"))
 							.mapToInt(path -> {
 								try {
@@ -64,7 +67,7 @@ public class EnforcerMojo extends AbstractMojo {
 				getLog().error(sourceWithIssue + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
 			}
 
-			if (issues > 0) {
+			if (totalIssues > 0) {
 				throw new MojoFailureException("There are rest actions not being executed, please check errors above.");
 			}
 		} catch (MojoFailureException e) {
@@ -75,10 +78,18 @@ public class EnforcerMojo extends AbstractMojo {
 	}
 
 	private int inspectClass(Path path) throws IOException {
-		final NoActionClassVisitor visitor = JDAction.inspectPath(getLog(), path, false);
+		final NoActionClassVisitor visitor = JDAction.inspectPath(path);
 
 		if (visitor.getIssueCount() > 0) {
 			sourceWithIssues.add(visitor.getSimpleSourceFile());
+		}
+
+		for (NoActionClassVisitor.NoActionIssue issue : visitor.getIssues().values()) {
+			if (ignoreFailures) {
+				getLog().warn(issue.getAsMessage());
+			} else {
+				getLog().error(issue.getAsMessage());
+			}
 		}
 
 		return visitor.getIssueCount();
