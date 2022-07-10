@@ -7,9 +7,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 // Straight up from https://github.com/JDA-Applications/jdaction/blob/master/src/main/java/com/sedmelluq/discord/jdaction/NoActionClassVisitor.java
-//  With a few modifications to what the logger shows
+//  With a few modifications to what the logger shows and how issues are reported
 public class NoActionClassVisitor extends ClassVisitor {
-	private static final boolean isIJ = System.getProperties().getProperty("idea.version") != null;
+	public static final boolean isIJ = System.getProperties().getProperty("idea.version") != null;
 
 	private final Log logger;
 	private final boolean ignoreFailures;
@@ -18,7 +18,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 	private final Map<Integer, String> issues = new HashMap<>();
 
 	NoActionClassVisitor(Log log, boolean ignoreFailures) {
-		super(Opcodes.ASM5);
+		super(Opcodes.ASM9);
 		this.logger = log;
 		this.ignoreFailures = ignoreFailures;
 	}
@@ -53,7 +53,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 		private int lineNumber;
 
 		public UnusedReturnMethodVisitor() {
-			super(Opcodes.ASM5);
+			super(Opcodes.ASM9);
 		}
 
 		@Override

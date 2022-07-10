@@ -38,4 +38,14 @@ public class Test {
 			jda.retrieveUserById(0);
 		}
 	}
+
+	public record InnerRecord() {
+		public void test() throws Exception {
+			JDA jda = JDABuilder.createLight("")
+					.build()
+					.awaitReady();
+
+			jda.retrieveUserById(0);
+		}
+	}
 }
