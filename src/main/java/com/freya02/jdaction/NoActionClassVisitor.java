@@ -3,6 +3,9 @@ package com.freya02.jdaction;
 import org.apache.maven.plugin.logging.Log;
 import org.objectweb.asm.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 // Straight up from https://github.com/JDA-Applications/jdaction/blob/master/src/main/java/com/sedmelluq/discord/jdaction/NoActionClassVisitor.java
 //  With a few modifications to what the logger shows
 public class NoActionClassVisitor extends ClassVisitor {
@@ -11,7 +14,8 @@ public class NoActionClassVisitor extends ClassVisitor {
 	private final Log logger;
 	private final boolean ignoreFailures;
 	private String simpleSourceFile;
-	private int issueCount;
+
+	private final Map<Integer, String> issues = new HashMap<>();
 
 	public NoActionClassVisitor(Log log, boolean ignoreFailures) {
 		super(Opcodes.ASM5);
@@ -31,8 +35,13 @@ public class NoActionClassVisitor extends ClassVisitor {
 		return new UnusedReturnMethodVisitor();
 	}
 
+	/** For testing purpose, this might be inaccurate as one line could have multiple instructions in java */
+	Map<Integer, String> getIssues() {
+		return issues;
+	}
+
 	public int getIssueCount() {
-		return issueCount;
+		return issues.size();
 	}
 
 	public String getSimpleSourceFile() {
@@ -71,7 +80,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 					logger.error(message);
 				}
 
-				issueCount++;
+				issues.put(lineNumber, simpleSourceFile);
 			}
 
 			checkForImmediatePop = false;
