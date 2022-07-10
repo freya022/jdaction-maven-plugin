@@ -27,7 +27,9 @@ public class EnforcerMojo extends AbstractMojo {
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
 	MavenProject project;
 
-	@Override //TODO make sure this plugin is executed AFTER compilation, perhaps look at executed goals ?
+	private final HashSet<String> sourceWithIssues = new HashSet<>();
+
+	@Override
 	public void execute() throws MojoExecutionException, MojoFailureException {
 		try {
 			if (ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.startsWith("-agentlib:jdwp"))) {
@@ -59,6 +61,10 @@ public class EnforcerMojo extends AbstractMojo {
 				}
 			}
 
+			for (String sourceWithIssue : sourceWithIssues) {
+				getLog().error(sourceWithIssue + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
+			}
+
 			if (issues > 0) {
 				throw new MojoFailureException("There are rest actions not being executed, please check errors above.");
 			}
@@ -73,7 +79,7 @@ public class EnforcerMojo extends AbstractMojo {
 		final NoActionClassVisitor visitor = JDAction.inspectPath(getLog(), path, false);
 
 		if (visitor.getIssueCount() > 0) {
-			getLog().error(visitor.getSimpleSourceFile() + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
+			sourceWithIssues.add(visitor.getSimpleSourceFile());
 		}
 
 		return visitor.getIssueCount();
