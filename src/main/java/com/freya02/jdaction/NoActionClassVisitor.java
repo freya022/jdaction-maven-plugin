@@ -10,8 +10,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 
 	private final Log logger;
 	private final boolean ignoreFailures;
-	private String fqcnClassName;
-	private String classExtension = "java";
+	private String simpleSourceFile;
 	private int issueCount;
 
 	public NoActionClassVisitor(Log log, boolean ignoreFailures) {
@@ -21,17 +20,10 @@ public class NoActionClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-		if (descriptor.equals("Lkotlin/Metadata;")) { //TODO improve support for file facades => remove "Kt" from file name
-			this.classExtension = "kt";
-		}
+	public void visitSource(String source, String debug) {
+		this.simpleSourceFile = source;
 
-		return super.visitAnnotation(descriptor, visible);
-	}
-
-	@Override
-	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-		this.fqcnClassName = name;
+		super.visitSource(source, debug);
 	}
 
 	@Override
@@ -44,17 +36,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 	}
 
 	public String getSimpleSourceFile() {
-		return getSimpleClassName() + "." + classExtension;
-	}
-
-	private String getSimpleClassName() {
-		final String[] split = fqcnClassName.split("/");
-		final String lastComponent = split[split.length - 1];
-		if (lastComponent.indexOf('$') > -1) {
-			return lastComponent.substring(0, lastComponent.indexOf('$'));
-		}
-
-		return lastComponent;
+		return simpleSourceFile;
 	}
 
 	private class UnusedReturnMethodVisitor extends MethodVisitor {
