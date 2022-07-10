@@ -1,5 +1,6 @@
-package com.freya02.jdaction;
+package com.freya02.jdaction.maven;
 
+import com.freya02.jdaction.NoActionClassVisitor;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
