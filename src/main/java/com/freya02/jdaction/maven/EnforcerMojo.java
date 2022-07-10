@@ -3,7 +3,6 @@ package com.freya02.jdaction.maven;
 import com.freya02.jdaction.JDAction;
 import com.freya02.jdaction.NoActionClassVisitor;
 import org.apache.maven.plugin.AbstractMojo;
-import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -30,7 +29,7 @@ public class EnforcerMojo extends AbstractMojo {
 	private final HashSet<String> sourceWithIssues = new HashSet<>();
 
 	@Override
-	public void execute() throws MojoExecutionException, MojoFailureException {
+	public void execute() throws MojoFailureException {
 		try {
 			if (ManagementFactory.getRuntimeMXBean().getInputArguments().stream().anyMatch(s -> s.startsWith("-agentlib:jdwp"))) {
 				System.out.println("Type for debug");
