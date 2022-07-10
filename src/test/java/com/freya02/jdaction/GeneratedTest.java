@@ -7,9 +7,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.objectweb.asm.ClassReader;
 
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +24,7 @@ public class GeneratedTest {
 
 	@Test
 	public void test() throws Exception {
-		final byte[] data = Files.readAllBytes(Paths.get("target", "test-classes", "NoActionTest.class"));
-		final ClassReader reader = new ClassReader(data);
-		final NoActionClassVisitor visitor = new NoActionClassVisitor(log, false);
-		reader.accept(visitor, ClassReader.SKIP_FRAMES);
+		final NoActionClassVisitor visitor = JDAction.inspectPath(log, Paths.get("target", "test-classes", "NoActionTest.class"), false);
 
 		final Map<Integer, String> issues = visitor.getIssues();
 

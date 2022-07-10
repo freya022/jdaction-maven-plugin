@@ -1,5 +1,6 @@
 package com.freya02.jdaction.maven;
 
+import com.freya02.jdaction.JDAction;
 import com.freya02.jdaction.NoActionClassVisitor;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -8,7 +9,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -70,10 +70,7 @@ public class EnforcerMojo extends AbstractMojo {
 	}
 
 	private int inspectClass(Path path) throws IOException {
-		final byte[] data = Files.readAllBytes(path);
-		final ClassReader reader = new ClassReader(data);
-		final NoActionClassVisitor visitor = new NoActionClassVisitor(getLog(), false);
-		reader.accept(visitor, ClassReader.SKIP_FRAMES);
+		final NoActionClassVisitor visitor = JDAction.inspectPath(getLog(), path, false);
 
 		if (visitor.getIssueCount() > 0) {
 			getLog().error(visitor.getSimpleSourceFile() + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");

@@ -17,7 +17,7 @@ public class NoActionClassVisitor extends ClassVisitor {
 
 	private final Map<Integer, String> issues = new HashMap<>();
 
-	public NoActionClassVisitor(Log log, boolean ignoreFailures) {
+	NoActionClassVisitor(Log log, boolean ignoreFailures) {
 		super(Opcodes.ASM5);
 		this.logger = log;
 		this.ignoreFailures = ignoreFailures;
