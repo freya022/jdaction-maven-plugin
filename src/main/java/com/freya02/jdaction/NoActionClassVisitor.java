@@ -153,12 +153,12 @@ public class NoActionClassVisitor extends ClassVisitor {
 			return lineNumber;
 		}
 
-		public String getAsMessage() {
+		public String getAsMessage(boolean ignoreFailures) {
 			final String sourceHyperlink = isIJ ? String.format(" (%s:%d)", simpleSourceFile, lineNumber) : "";
 			final String realErrorMessage = String.format("Return value is unused. This action is not performed.%s", sourceHyperlink);
 			String message = String.format("%s:%d %s", simpleSourceFile, lineNumber, realErrorMessage);
 
-			if (isIJ) { //Small hack to add a hyperlink that IJ recognizes, to facilitate navigation
+			if (!ignoreFailures) { //Small hack to add a hyperlink that IJ recognizes, to facilitate navigation
 				message = message + " " + realErrorMessage;
 			}
 

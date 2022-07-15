@@ -89,6 +89,9 @@
                         </goals>
                     </execution>
                 </executions>
+<!--                <configuration>-->
+<!--                    <ignoreFailures>true</ignoreFailures>-->
+<!--                </configuration>-->
             </plugin>
         </plugins>
     </build>

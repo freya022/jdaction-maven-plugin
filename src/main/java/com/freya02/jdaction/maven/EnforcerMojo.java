@@ -64,10 +64,10 @@ public class EnforcerMojo extends AbstractMojo {
 			}
 
 			for (String sourceWithIssue : sourceWithIssues) {
-				getLog().error(sourceWithIssue + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
+				doLog(sourceWithIssue + ":0 Please see https://jda.wiki/using-jda/using-restaction/ for more details");
 			}
 
-			if (totalIssues > 0) {
+			if (totalIssues > 0 && !ignoreFailures) {
 				throw new MojoFailureException("There are rest actions not being executed, please check errors above.");
 			}
 		} catch (MojoFailureException e) {
@@ -85,13 +85,17 @@ public class EnforcerMojo extends AbstractMojo {
 		}
 
 		for (NoActionClassVisitor.NoActionIssue issue : visitor.getIssues().values()) {
-			if (ignoreFailures) {
-				getLog().warn(issue.getAsMessage());
-			} else {
-				getLog().error(issue.getAsMessage());
-			}
+			doLog(issue.getAsMessage(ignoreFailures)); //Don't use format for warnings
 		}
 
 		return visitor.getIssueCount();
+	}
+
+	private void doLog(String message) {
+		if (ignoreFailures) {
+			getLog().warn(message);
+		} else {
+			getLog().error(message);
+		}
 	}
 }
